@@ -9,7 +9,7 @@ fn read_input(input_file: &str) -> Vec<Vec<usize>> {
   let mut r = Vec::new();
   r.push(Vec::new());
 
-  // Is there a split() form for Iterator?
+  // TODO: Is there a split() form for Iterator?
   bf.lines().fold(&mut r, |s, e| {
     let v = e.unwrap();
     if v == "" {
