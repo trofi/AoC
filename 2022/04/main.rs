@@ -49,49 +49,51 @@ impl FromStr for Pair {
   }
 }
 
-fn solve_p1(input: &Vec<String>) -> usize {
-  input.iter().map(|l| {
+fn solve_p1(input: &Vec<String>) -> Result<usize, ()> {
+  let r = input.iter().map(|l| {
       let p: Pair = l.parse().expect("pair format did not match");
       let i = p.segments
                .iter()
                .cloned()
                .reduce(|a, v| a.intersect(&v))
-               .expect("at least on element");
+               .expect("at least one element");
 
       if p.segments.contains(&i) { 1 } else { 0 }
     }
-  ).sum()
+  ).sum();
+  Ok(r)
 }
 
-fn solve_p2(input: &Vec<String>) -> usize {
-  input.iter().map(|l| {
+fn solve_p2(input: &Vec<String>) -> Result<usize, ()> {
+  let r =  input.iter().map(|l| {
       let p: Pair = l.parse().expect("pair format did not match");
       let i = p.segments
                .iter()
                .cloned()
                .reduce(|a, v| a.intersect(&v))
-               .expect("at least on element");
+               .expect("at least one element");
 
       if i.is_empty() { 0 } else { 1 }
     }
-  ).sum()
+  ).sum();
+  Ok(r)
 }
 
-fn read_input(input_file: &str) -> Vec<String> {
+fn read_input(input_file: &str) -> Result<Vec<String>, ()> {
   let f = File::open(input_file).unwrap();
   let bf = BufReader::new(f);
 
-  bf.lines()
-    .map(|l| l.expect("expect line"))
-    .collect()
+  let r = bf.lines().map(|l| l.expect("a line")).collect();
+  Ok(r)
 }
 
-fn main() {
+fn main() -> Result<(), ()> {
   for ifile in ["example" , "input"] {
-    let input = read_input(ifile);
-    let ans_p1 = solve_p1(&input);
-    let ans_p2 = solve_p2(&input);
+    let input = read_input(ifile)?;
+    let ans_p1 = solve_p1(&input)?;
     println!("{}: P1 ans: {:?}", ifile, ans_p1);
+    let ans_p2 = solve_p2(&input)?;
     println!("{}: P2 ans: {:?}", ifile, ans_p2);
   }
+  Ok(())
 }
