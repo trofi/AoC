@@ -1,9 +1,10 @@
 use std::cmp::min;
 use std::cmp::max;
-use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
+use std::fs::read_to_string;
 use std::str::FromStr;
+use std::error::Error;
+
+type E = Box<dyn Error>;
 
 #[derive(Debug, Clone, PartialEq)]
 struct Assignment { from: usize, to: usize, }
@@ -49,7 +50,7 @@ impl FromStr for Pair {
   }
 }
 
-fn solve_p1(input: &Vec<String>) -> Result<usize, ()> {
+fn solve_p1(input: &Vec<&str>) -> Result<usize, ()> {
   let r = input.iter().map(|l| {
       let p: Pair = l.parse().expect("pair format did not match");
       let i = p.segments
@@ -64,7 +65,7 @@ fn solve_p1(input: &Vec<String>) -> Result<usize, ()> {
   Ok(r)
 }
 
-fn solve_p2(input: &Vec<String>) -> Result<usize, ()> {
+fn solve_p2(input: &Vec<&str>) -> Result<usize, ()> {
   let r =  input.iter().map(|l| {
       let p: Pair = l.parse().expect("pair format did not match");
       let i = p.segments
@@ -79,20 +80,14 @@ fn solve_p2(input: &Vec<String>) -> Result<usize, ()> {
   Ok(r)
 }
 
-fn read_input(input_file: &str) -> Result<Vec<String>, ()> {
-  let f = File::open(input_file).unwrap();
-  let bf = BufReader::new(f);
-
-  let r = bf.lines().map(|l| l.expect("a line")).collect();
-  Ok(r)
-}
-
-fn main() -> Result<(), ()> {
+fn main() -> Result<(), E> {
   for ifile in ["example" , "input"] {
-    let input = read_input(ifile)?;
-    let ans_p1 = solve_p1(&input)?;
+    let input_string = read_to_string(ifile)?;
+    let input: Vec<&str> = input_string.lines().collect();
+
+    let ans_p1 = solve_p1(&input).expect("p1 failed");
     println!("{}: P1 ans: {:?}", ifile, ans_p1);
-    let ans_p2 = solve_p2(&input)?;
+    let ans_p2 = solve_p2(&input).expect("p2 failed");
     println!("{}: P2 ans: {:?}", ifile, ans_p2);
   }
   Ok(())
