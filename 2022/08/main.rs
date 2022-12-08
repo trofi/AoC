@@ -1,6 +1,5 @@
 use std::fs::read_to_string;
 use std::error::Error;
-use std::cmp;
 
 type E = Box<dyn Error>;
 
@@ -11,8 +10,8 @@ struct State {
 }
 type Grid = Vec<Vec<State>>;
 
-fn h(g: &Grid) -> usize { g.len() }
-fn w(g: &Grid) -> usize { g[0].len() }
+fn h(f: &Grid) -> usize { f.len() }
+fn w(f: &Grid) -> usize { f[0].len() }
 
 fn parse(i: &str) -> Grid {
   i.lines().map(|l|
@@ -88,27 +87,37 @@ fn solve_p1(f: &mut Grid) -> usize {
 fn solve_p2(f: &Grid) -> usize {
   let mut candidates = Vec::new();
 
-  for c in 0..w(f) {
-    for r in 0..h(f) {
+  for r in 0..h(f) {
+    for c in 0..w(f) {
       if f[r][c].is_visible {
-        candidates.push((c, r));
+        candidates.push((r, c));
       }
     }
   }
 
-  candidates.iter().map(|(c,r)| {
+  candidates.iter().map(|(r,c)| {
     let hei = f[*r][*c].height;
-    /* assume we bump into a high tree, will clamp to bounds below */
-    let up = (0..*r).rev().take_while(|i| f[*i][*c].height < hei).count() + 1;
-    let down = (*r..h(f)).take_while(|i| f[*i][*c].height < hei).count() + 1;
-    let left = (0..*c).rev().take_while(|i| f[*r][*i].height < hei).count() + 1;
-    let right = (*c..w(f)).take_while(|i| f[*r][*i].height < hei).count() + 1;
+    /* assume we bump into a high tree, or a bound */
+    let up = (0..*r)
+        .rev()
+        .enumerate()
+        .find(|(_, i)| f[*i][*c].height >= hei)
+        .map_or(*r, |(n, _)| n + 1);
+    let down = (*r+1..h(f))
+        .enumerate()
+        .find(|(_, i)| f[*i][*c].height >= hei)
+        .map_or(h(f) - *r - 1, |(n, _)| n + 1);
+    let left = (0..*c)
+        .rev()
+        .enumerate()
+        .find(|(_, i)| f[*r][*i].height >= hei)
+        .map_or(*c, |(n, _)| n + 1);
+    let right = (*c+1..w(f))
+        .enumerate()
+        .find(|(_, i)| f[*r][*i].height >= hei)
+        .map_or(w(f) - *c - 1, |(n, _)| n + 1);
 
-    /* clamp to bounds */
-      cmp::min(up, *r)
-    * cmp::min(down, h(f) - *r - 1)
-    * cmp::min(left, *c)
-    * cmp::min(right, w(f) - *c - 1)
+    up * down * left * right
   }).max().expect("at least one element")
 }
 
