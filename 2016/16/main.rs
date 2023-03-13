@@ -33,6 +33,9 @@ fn csum(i: &str) -> String {
     csum
 }
 
+// TODO: solve this only using iterators without
+// actual string allcoation. It should be feasible
+// as we know all the lengths upfront.
 fn solve(i: &str, l: usize) -> String {
     let mut f: String = String::from(i);
     while f.len() < l {
