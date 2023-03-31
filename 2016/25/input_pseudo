@@ -1,0 +1,61 @@
+  d = a            ; cpy a d
+  c = 14           ; cpy 14 c
+label2:
+  b = 182          ; cpy 182 b
+label1:
+  d += 1           ; inc d
+  b -= 1           ; dec b
+  if b goto label1 ; jnz b -2
+  c -=1            ; dec c
+  if c goto label2 ; jnz c -5
+label11:
+  a = d            ; cpy d a
+label10:
+  nop              ; jnz 0 0
+  b = a            ; cpy a b
+  a = 0            ; cpy 0 a
+label6:
+  c = 2            ; cpy 2 c
+label5:
+  if b goto label3 ; jnz b 2
+  goto label 4     ; jnz 1 6
+label3:
+  b -= 1           ; dec b
+  c -= 1           ; dec c
+  if c goto label5 ; jnz c -4
+  a += 1           ; inc a
+  goto label6      ; jnz 1 -7
+label4:
+  b = 2            ; cpy 2 b
+label9:
+  if c goto label7 ; jnz c 2
+  goto label8      ; jnz 1 4
+label7:
+  b -= 1           ; dec b
+  c -= 1           ; dec c
+  goto label9      ; jnz 1 -4
+label8:
+  nop              ; jnz 0 0
+  OUT b            ; out b
+  if a goto label10; jnz a -19
+  goto label11     ; jnz 1 -21
+
+
+Simplified version of the above is:
+
+    d = a + 182*14;
+    for (;;) {
+      a = d;
+      do {
+        b = a % 2;
+        a /= 2;
+        out b
+      } while (a)
+    }
+
+It is a printer of binary representation of 'a + 182*14'. We want the
+number of pattern "1010...". 182*14 is "100111110100" (12 digits).
+We want 0xAAA (smallest number above 182*14).
+
+Thus: answer is:
+  0xAAA - 182*14 = 182
