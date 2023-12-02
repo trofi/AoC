@@ -14,7 +14,7 @@ fn parse_round(i: &str) -> Round {
     let mut g = 0usize;
     let mut b = 0usize;
 
-    // Example: " 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+    // Example: " 3 blue, 4 red"
     for e in i.split(",") {
         let v: Vec<&str> = e.split(" ").collect();
         match v.as_slice() {
