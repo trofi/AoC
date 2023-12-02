@@ -44,8 +44,22 @@ fn solve_p1(i: &str, bag: &Round) -> usize {
     let games: Vec<Game> = i.lines().map(|l| parse_game(l)).collect();
 
     games.into_iter()
-         .filter(|g| g.rounds.iter().all(|r| r.r <= bag.r && r.g <= bag.g && r.b <= bag.b))
-         .map(|g| g.ix)
+         .filter(|game| game.rounds.iter().all(|r| r.r <= bag.r && r.g <= bag.g && r.b <= bag.b))
+         .map(|game| game.ix)
+         .sum()
+}
+
+fn solve_p2(i: &str) -> usize {
+    let games: Vec<Game> = i.lines().map(|l| parse_game(l)).collect();
+
+    games.into_iter()
+         .map(|game| {
+             let r = game.rounds.iter().map(|r| r.r).max().expect("one round");
+             let g = game.rounds.iter().map(|r| r.g).max().expect("one round");
+             let b = game.rounds.iter().map(|r| r.b).max().expect("one round");
+             (r, g, b)
+         })
+         .map(|(r,g,b)| r*g*b)
          .sum()
 }
 
@@ -54,4 +68,6 @@ fn main() {
     let i = std::fs::read_to_string("input").expect("input");
     println!("P1 example: {}", solve_p1(&e, &Round{r: 12, g: 13, b: 14}));
     println!("P1 input:   {}", solve_p1(&i, &Round{r: 12, g: 13, b: 14}));
+    println!("P2 example: {}", solve_p2(&e));
+    println!("P2 input:   {}", solve_p2(&i));
 }
