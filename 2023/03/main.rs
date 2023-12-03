@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter::once;
 
 type Map = HashMap<(isize, isize), char>;
 
@@ -25,7 +26,7 @@ fn solve_p1(i: &str) -> usize {
         let mut d_end = 0isize;
         let mut d: Option<u32> = None;
 
-        for (x, c) in l.chars().enumerate() {
+        for (x, c) in l.chars().chain(once('.')).enumerate() {
             if let Some(dc) = c.to_digit(10) {
                 // aggregate a value
                 d = Some(match d {
@@ -51,21 +52,6 @@ fn solve_p1(i: &str) -> usize {
                 d_end   = 0;
             }
         }
-        // duplication of the above :(
-        if let Some(v) = d {
-            // validate value
-            let mut saw_mark = false;
-            for vx in (d_start - 1)..=(d_end + 1) {
-                if let Some(vc) = m.get(&(vx, y as isize - 1)) { saw_mark |= !vc.is_digit(10); }
-                if let Some(vc) = m.get(&(vx, y as isize + 1)) { saw_mark |= !vc.is_digit(10); }
-            }
-            if let Some(vc) = m.get(&(d_start - 1, y as isize)) { saw_mark |= !vc.is_digit(10); }
-            if let Some(vc) = m.get(&(d_end   + 1, y as isize)) { saw_mark |= !vc.is_digit(10); }
-
-            if saw_mark {
-                r += v as usize;
-            }
-        }
     }
 
     r
@@ -81,7 +67,7 @@ fn solve_p2(i: &str) -> usize {
         let mut d_end = 0isize;
         let mut d: Option<u32> = None;
 
-        for (x, c) in l.chars().enumerate() {
+        for (x, c) in l.chars().chain(once('.')).enumerate() {
             if let Some(dc) = c.to_digit(10) {
                 // aggregate a value
                 d = Some(match d {
@@ -109,25 +95,6 @@ fn solve_p2(i: &str) -> usize {
                 d = None;
                 d_start = 0;
                 d_end   = 0;
-            }
-        }
-        // duplication of the above :(
-        if let Some(v) = d {
-            // fetch gear coords
-            let mut gs: Vec<(isize, isize)> = Vec::new();
-
-            for vx in (d_start - 1)..=(d_end + 1) {
-                if m.get(&(vx, y as isize - 1)) == Some(&'*') { gs.push((vx, y as isize - 1)); }
-                if m.get(&(vx, y as isize + 1)) == Some(&'*') { gs.push((vx, y as isize + 1)); }
-
-            }
-            if m.get(&(d_start - 1, y as isize)) == Some(&'*') { gs.push((d_start - 1, y as isize)); }
-            if m.get(&(d_end   + 1, y as isize)) == Some(&'*') { gs.push((d_end   + 1, y as isize)); }
-
-            for g in &gs {
-                gears.entry(*g)
-                    .and_modify(|e| e.push(v as usize))
-                    .or_insert(vec![v as usize]);
             }
         }
     }
