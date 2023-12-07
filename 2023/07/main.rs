@@ -9,23 +9,12 @@ struct Hand<'a>{
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-enum Type {
-    High,
-    Pair,
-    TwoPairs,
-    Three,
-    House,
-    Four,
-    Five,
-}
-
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
 struct Value {
-    t: Type,
-    r: Vec<usize>,
+    t: Vec<usize>, // type
+    r: Vec<usize>, // rank
 }
 
-const RANKS: &str       = "23456789TJQKA";
+const       RANKS: &str = "23456789TJQKA";
 const JOKER_RANKS: &str = "J23456789TQKA";
 
 impl Hand<'_> {
@@ -37,7 +26,7 @@ impl Hand<'_> {
         }
     }
 
-    fn hand_type(self: &Self) -> Type {
+    fn hand_type(self: &Self) -> Vec<usize> {
         let mut hist: HashMap<char, usize> = HashMap::new();
         for c in self.h.chars() {
             hist.entry(c)
@@ -54,6 +43,7 @@ impl Hand<'_> {
         let mut v: Vec<usize> = hist.values().cloned().collect();
         v.sort();
 
+        // account jokers to most frequent card
         let l = v.len();
         if l > 0 {
             v[l - 1] += jokers;
@@ -61,17 +51,9 @@ impl Hand<'_> {
             v.push(jokers);
         }
 
-        match v.as_slice() {
-            [1, 1, 1, 1, 1] => Type::High,
-            [1, 1, 1, 2]    => Type::Pair,
-            [1, 2, 2]       => Type::TwoPairs,
-            [1, 1, 3]       => Type::Three,
-            [2, 3]          => Type::House,
-            [1, 4]          => Type::Four,
-            [5]             => Type::Five,
-            _ => panic!("Unhandled {:?} hand", v),
-        }
+        v.into_iter().rev().collect()
     }
+
     fn value(self: &Self) -> Value {
         Value{
             t: self.hand_type(),
