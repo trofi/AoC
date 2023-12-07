@@ -138,7 +138,6 @@ fn main() {
     let i = std::fs::read_to_string("input").expect("input");
     println!("P1 example: {}", solve_p1(&e));
     println!("P1   input: {}", solve_p1(&i));
-    // 248814038 is too low
     println!("P2 example: {}", solve_p2(&e));
     println!("P2   input: {}", solve_p2(&i));
 }
