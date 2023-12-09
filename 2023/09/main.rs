@@ -55,7 +55,7 @@ fn cs_to_first(v: &[isize]) -> isize {
 fn solve_p2(i: &str) -> isize {
     let vs = parse_input(i);
     vs.into_iter().map(|v| {
-        let (mut cs, poly) = seq_to_cs(&v);
+        let (cs, _) = seq_to_cs(&v);
         cs_to_first(&cs)
     }).sum()
 }
