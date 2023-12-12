@@ -75,7 +75,7 @@ fn solve_p2(i: &str) -> usize {
 
 
     m.into_iter().map(|(m, ns)| {
-        let cm: Vec<char> = format!("{}?{}?{}?{}?{}", m, m, m, m, m).chars().collect();
+        let cm: Vec<char> = [m].repeat(5).join("?").chars().collect();
         let n: Vec<usize> = ns.repeat(5);
 
         let mut cache: Cache = Cache::new();
