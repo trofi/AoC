@@ -11,11 +11,14 @@ $ rustc -O main.rs && ./main
 Very occasionally there is an extra dependency on `re2c` or on a `cargo`
 package.
 
-## Nix development shell
+## `nix` development shell
 
-`flake.nix` also allows you to drop into a shell with all required
-prerequisites. As I don't track `flake.lock` and explicitly ignore it in
-`.gitignore` you will need an extra `--no-write-lock-file` flag:
+This repository contains `flake.nix` file. It allows you to drop into a
+development shell with all required prerequisites.
+
+There is one caveat: I don't track `flake.lock` and explicitly ignore it
+in `.gitignore`. You will need an extra `--no-write-lock-file` flag to
+run it successfully:
 
 ```
 $ nix develop --no-write-lock-file
