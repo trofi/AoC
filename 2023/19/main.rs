@@ -1,5 +1,5 @@
 #[derive(Clone, Copy)]
-enum Cmp { LT, GT }
+enum Cmp { LT, GT, Yes }
 
 struct Op<'a> {
     var: usize,
@@ -26,8 +26,9 @@ fn parse_op(i: &str) -> Op {
     if iv.len() == 1 {
         return Op {
             // fake values to be always true
+            // Ideally Op should be an enum Conditional/Unconditional.
             var: 0,
-            cmp: Cmp::LT,
+            cmp: Cmp::Yes,
             val: isize::MAX,
 
             target: iv[0],
@@ -100,6 +101,7 @@ fn is_prog_accepting(prog: &[Cmd], p: Part) -> bool {
             let r = match op.cmp {
                 Cmp::LT => p[op.var] < op.val,
                 Cmp::GT => p[op.var] > op.val,
+                Cmp::Yes => true,
             };
             if r {
                 if op.target == "A" { return true }
@@ -139,9 +141,6 @@ fn solve_p2(i: &str) -> isize {
         let ix = prog.iter().position(|c| c.label == wf).expect("an in label");
 
         for op in &prog[ix].ops {
-            // Hack: I encode unconditional branch that way.
-            if op.val == isize::MAX { r += step(&prog, op.target, nc); return r; }
-
             match op.cmp {
                 Cmp::LT => {
                     let mut ct: Cube = nc;
@@ -157,19 +156,17 @@ fn solve_p2(i: &str) -> isize {
                     nc[op.var].1 = op.val;
                     if nc[op.var].0 >= nc[op.var].1 { return r; }
                 },
+                Cmp::Yes => {
+                    r += step(&prog, op.target, nc);
+                    return r;
+                }
             };
         }
 
         panic!("Non-exhaustive?");
     }
 
-    let c = [
-        (1, 4000),
-        (1, 4000),
-        (1, 4000),
-        (1, 4000),
-    ];
-
+    let c = [(1, 4000); 4];
     step(&prog, "in", c)
 }
 
