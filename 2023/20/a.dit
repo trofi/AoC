@@ -1,0 +1,172 @@
+//P1 example: 32000000
+//P1   input: 949764474
+digraph G {
+  node [shape=box]
+  dl [label="%:dl"]
+  mc [label="%:mc"]
+  tg [label="%:tg"]
+  kt [label="%:kt"]
+  mk [label="%:mk"]
+  dg [label="%:dg"]
+  bs [label="%:bs"]
+  mt [label="%:mt"]
+  mh [label="%:mh"]
+  dx [label="%:dx"]
+  kj [label="&:kj"]
+  broadcaster [label=":broadcaster"]
+  hf [label="%:hf"]
+  jv [label="&:jv"]
+  dr [label="&:dr"]
+  hm [label="%:hm"]
+  lv [label="%:lv"]
+  mv [label="%:mv"]
+  km [label="%:km"]
+  jm [label="&:jm"]
+  pr [label="&:pr"]
+  mf [label="%:mf"]
+  gv [label="%:gv"]
+  gl [label="%:gl"]
+  cl [label="%:cl"]
+  rg [label="%:rg"]
+  nm [label="%:nm"]
+  ng [label="%:ng"]
+  tp [label="%:tp"]
+  tm [label="%:tm"]
+  kf [label="%:kf"]
+  vn [label="&:vn"]
+  rc [label="%:rc"]
+  ns [label="%:ns"]
+  pb [label="%:pb"]
+  lh [label="%:lh"]
+  sc [label="%:sc"]
+  pn [label="%:pn"]
+  pd [label="%:pd"]
+  vq [label="%:vq"]
+  qs [label="&:qs"]
+  nd [label="%:nd"]
+  vc [label="%:vc"]
+  dh [label="%:dh"]
+  hj [label="%:hj"]
+  mx [label="%:mx"]
+  zp [label="%:zp"]
+  tk [label="%:tk"]
+  vx [label="%:vx"]
+  bf [label="%:bf"]
+  xv [label="%:xv"]
+  zx [label="&:zx"]
+  jp [label="%:jp"]
+  qb [label="%:qb"]
+  cb [label="%:cb"]
+  ln [label="&:ln"]
+  ts [label="%:ts"]
+  pf [label="%:pf"]
+  tm -> mh
+  ns -> pr
+  ns -> pn
+  tg -> jv
+  ts -> ng
+  ts -> qs
+  tp -> pf
+  tp -> jm
+  broadcaster -> kt
+  broadcaster -> pd
+  broadcaster -> xv
+  broadcaster -> rg
+  pn -> pr
+  pn -> cb
+  dh -> jv
+  dh -> mc
+  vx -> ns
+  pd -> pr
+  pd -> jp
+  dx -> ts
+  mc -> jv
+  mc -> lv
+  mk -> pb
+  pb -> tp
+  kf -> dx
+  xv -> nd
+  xv -> jm
+  nd -> dg
+  mf -> gv
+  mf -> jm
+  zx -> kj
+  cb -> pr
+  cb -> tk
+  kj -> rx
+  bf -> vx
+  bf -> pr
+  hf -> nm
+  km -> jm
+  ng -> qs
+  ng -> lh
+  tk -> pr
+  jm -> pb
+  jm -> tm
+  jm -> zx
+  jm -> mk
+  jm -> xv
+  jm -> nd
+  bs -> sc
+  bs -> qs
+  pf -> mf
+  pf -> jm
+  ln -> kj
+  dg -> tm
+  dg -> jm
+  lh -> qs
+  lh -> dl
+  qb -> bf
+  qb -> pr
+  mt -> jv
+  mt -> zp
+  cl -> hm
+  mv -> qs
+  mv -> gl
+  sc -> mv
+  kt -> jv
+  kt -> mt
+  qs -> kf
+  qs -> dr
+  qs -> sc
+  qs -> rg
+  qs -> gl
+  qs -> dx
+  nm -> dh
+  nm -> jv
+  gv -> jm
+  gv -> km
+  hm -> qb
+  vc -> jv
+  vc -> hf
+  zp -> rc
+  lv -> jv
+  lv -> tg
+  rc -> hj
+  pr -> pd
+  pr -> vx
+  pr -> vn
+  pr -> cl
+  pr -> hm
+  mh -> mk
+  mh -> jm
+  vq -> bs
+  vq -> qs
+  vn -> kj
+  rg -> qs
+  rg -> vq
+  dl -> qs
+  dr -> kj
+  mx -> cl
+  mx -> pr
+  hj -> vc
+  jp -> mx
+  jp -> pr
+  gl -> kf
+  jv -> hj
+  jv -> rc
+  jv -> kt
+  jv -> ln
+  jv -> zp
+  jv -> hf
+}
