@@ -1,6 +1,5 @@
 // run as:
-//   $ re2rust main.re -o main.rs --tags --api simple --no-unsafe && rustc -O main.rs && ./main
-//   note: it relies on re2c-4 features.
+//   $ re2rust main.re -o main.rs && rustc -O main.rs && ./main
 
 #[derive(Debug)]
 enum Cmd {
@@ -10,34 +9,34 @@ enum Cmd {
 }
 
 fn s2n(str: &[u8]) -> isize {
-    let mut n = 0;
-    for i in str { n = n * 10 + *i as isize - 48; }
-    return n;
+    String::from_utf8_lossy(str).parse::<isize>().expect("a number")
 }
 
 fn lex(yyinput: &[u8]) -> Vec<Cmd> {
+  assert_eq!(yyinput.last(), Some(&0)); // our grammar requires the terminator
+
   let mut r: Vec<Cmd> = Vec::new();
 
   let mut yycursor: usize = 0;
   let mut yymarker: usize = 0;
-  let mut yyt1: usize = 0;
-  let mut yyt2: usize = 0;
 
-  let mut t1: usize;
-  let mut t2: usize;
-  let mut t3: usize;
-  let mut t4: usize;
+  /*!svars:re2c format = 'let mut @@ : usize;\n';*/
+  /*!stags:re2c format = 'let mut @@ : usize = 0;\n';*/
+
   'lex: loop {
     /*!re2c
       re2c:define:YYCTYPE = u8;
       re2c:yyfill:enable = 0;
       re2c:tags = 1;
+      re2c:unsafe = 0;
+      // since re2c-4:
+      re2c:api = simple;
 
       NUM = [0-9]{1,3};
 
-      "mul" '(' @t1 NUM @t2 ',' @t3 NUM @t4 ')'  {
-        let ln = s2n(&yyinput[t1..t2]);
-        let rn = s2n(&yyinput[t3..t4]);
+      "mul(" @lns NUM @lne "," @rns NUM @rne ")"  {
+        let ln = s2n(&yyinput[lns..lne]);
+        let rn = s2n(&yyinput[rns..rne]);
         r.push(Cmd::Mul(ln, rn));
         continue 'lex;
       }
