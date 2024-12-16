@@ -43,7 +43,7 @@ fn solve_p1(i: &str) -> Result {
         cost: usize, // also the score
         pos: Coord,
         dir: usize,
-        seen_tiles: BTreeSet<Coord>,
+        seen_tiles: Vec<Coord>,
     }
 
     let mut queue: BTreeSet<Key> = BTreeSet::new();
@@ -52,7 +52,7 @@ fn solve_p1(i: &str) -> Result {
         cost: 0,
         pos: start,
         dir: 0, // east
-        seen_tiles: BTreeSet::from([start]),
+        seen_tiles: vec![start],
     });
 
     let mut best_cost = usize::MAX;
@@ -65,7 +65,7 @@ fn solve_p1(i: &str) -> Result {
             if k.cost < best_cost {
                 eprintln!("Found better: {best_cost} -> {}", k.cost);
                 best_cost = k.cost;
-                seen_tiles = BTreeSet::new();;
+                seen_tiles = BTreeSet::new();
             }
             /* k.cost == best_cost */
             for t in &k.seen_tiles {
@@ -110,7 +110,7 @@ fn solve_p1(i: &str) -> Result {
                 cost: k.cost + 1,
                 pos: np,
                 dir: k.dir,
-                seen_tiles: { let mut s = k.seen_tiles.clone(); s.insert(np); s },
+                seen_tiles: { let mut s = k.seen_tiles.clone(); s.push(np); s },
             });
         }
     }
