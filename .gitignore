@@ -1,1 +1,3 @@
 /flake.lock
+# the default executable name I use
+main
