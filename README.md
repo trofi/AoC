@@ -2,7 +2,7 @@ These are my attempts at solving <https://adventofcode.com/> puzzles.
 
 ## How to run
 
-Most of the solutions are in `rust` and should be runnable as:
+Most of the solutions are in `rust` and should run as:
 
 ```
 $ rustc -O main.rs && ./main
@@ -10,6 +10,11 @@ $ rustc -O main.rs && ./main
 
 Very occasionally there is an extra dependency on `re2c` or on a `cargo`
 package.
+
+For convenience I added a workspace that includes a few sample projects
+to allow `rust-analyzer` and `cargo run` to Just Work when ran form a
+solution directory. Over time I'll try to convert most of the past
+solutions to it.
 
 ## `nix` development shell
 
