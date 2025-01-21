@@ -1,3 +1,5 @@
 /flake.lock
+/Cargo.lock
+/target
 # the default executable name I use
 main
