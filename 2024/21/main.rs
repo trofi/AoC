@@ -14,7 +14,7 @@ struct State<'a> {
     dv: Vec<char>, // directional (d[0] is user-facing, d[len-1] is numeric-facing
 }
 
-fn mk_initial(i: &[char], depth: usize) -> State {
+fn mk_initial(i: &[char], depth: usize) -> State<'_> {
     let mut dv: Vec<char> = Vec::new();
     dv.resize(depth, 'A');
 
