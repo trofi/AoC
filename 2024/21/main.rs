@@ -1,5 +1,5 @@
-use std::collections::BTreeSet;
 use std::collections::HashMap;
+use std::collections::VecDeque;
 
 fn parse_input(i: &str) -> Vec<(Vec<char>, usize)> {
     i.lines()
@@ -7,243 +7,148 @@ fn parse_input(i: &str) -> Vec<(Vec<char>, usize)> {
      .collect()
 }
 
-#[derive(Clone, Eq, Hash, Ord, PartialOrd, PartialEq)]
-struct State<'a> {
-    to_output: &'a [char],
-    n: char, // numeric
-    dv: Vec<char>, // directional (d[0] is user-facing, d[len-1] is numeric-facing
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+struct Path {
+    from: char,
+    to: char,
 }
 
-fn mk_initial(i: &[char], depth: usize) -> State<'_> {
-    let mut dv: Vec<char> = Vec::new();
-    dv.resize(depth, 'A');
+// Path is a src->dst on control keyboard with an activation
+// 'usize' is a cost.
+type CostMap = HashMap<Path, usize>;
 
-    State {
-        to_output: i,
-        n: 'A',
-        dv,
+type Coord = (isize, isize);
+
+const DIRPAD: [(Coord, char); 5] = [
+                  ((1,1), '^'), ((2,1), 'A'),
+    ((0,0), '<'), ((1,0), 'v'), ((2,0), '>'),
+];
+
+const NUMPAD: [(Coord, char); 11] = [
+    ((0,3), '7'), ((1,3), '8'), ((2,3), '9'),
+    ((0,2), '4'), ((1,2), '5'), ((2,2), '6'),
+    ((0,1), '1'), ((1,1), '2'), ((2,1), '3'),
+                  ((1,0), '0'), ((2,0), 'A'),
+];
+
+type Pad = HashMap<Coord, char>;
+
+fn dir2delta(dir: char) -> Coord {
+    match dir {
+        'A' => ( 0, 0),
+        'v' => ( 0,-1),
+        '^' => ( 0, 1),
+        '<' => (-1, 0),
+        '>' => ( 1, 0),
+        _ => panic!("Unhandled {} direction", dir)
     }
 }
 
-fn handle_move<'a>(s: &State<'a>) -> Vec<State<'a>> {
-    let mut r: Vec<State> = Vec::new();
+fn advance_dir_one(pos: char, dir: char, pad: &Pad) -> Option<char> {
 
-    // move d[0] itself one available direction around:
-    //   ^ A
-    // < v >
-    let neighbors: &[char] = match s.dv[0] {
-        '^' => &['A', 'v'],
-        'A' => &['^', '>'],
-        '<' => &['v'],
-        'v' => &['^', '<', '>'],
-        '>' => &['A', 'v'],
-        _ => panic!("Not yet handled dv[0]={:?} move", s.dv[0]),
-    };
+    let d = dir2delta(dir);
+    
+    for (c, v) in pad.iter() {
+        if pos == *v {
+            let np = (c.0 + d.0, c.1 + d.1);
+            return pad.get(&np).copied()
+        }
+    }
+    panic!("Unresolved pos={}", pos);
+}
 
-    for ne in neighbors {
-        let mut dv = s.dv.clone();
-        dv[0] = *ne;
+// Derive movement costmap from previous (input) to the
+// next (output) controller.
+fn advance_pad(m: &CostMap, pad: &Pad) -> CostMap {
+    struct State {
+        spath: Path,
+        dpath: Path,
+        cost: usize,
+        stepped: bool,
+    }
 
-        r.push(State{
-            to_output: s.to_output,
-            n: s.n,
-            dv,
+    let mut r = CostMap::new();
+    let mut seen: HashMap<(Path, Path), usize> = HashMap::new();
+    let mut q = VecDeque::new();
+    for pos in pad.values() {
+        q.push_back(State{
+            spath: Path{from: 'A', to: 'A'},
+            dpath: Path{from: *pos, to: *pos},
+            cost: 0,
+            stepped: false,
         });
+    }
+
+    while let Some(e) = q.pop_front() {
+        if e.stepped {
+            if let Some(seen_cost) = seen.get(&(e.spath, e.dpath)) {
+                if *seen_cost <= e.cost { continue }
+            }
+            seen.insert((e.spath, e.dpath), e.cost);
+            if e.spath.to == 'A' {
+                r.insert(e.dpath, e.cost);
+                continue
+            }
+        }
+
+        // explore all moves
+        for (p, pcost) in m {
+            if p.from != e.spath.to { continue }
+
+            if let Some(d) = advance_dir_one(e.dpath.to, e.spath.to, pad) {
+                q.push_back(State{
+                    spath: Path{from: e.spath.from, to: p.to},
+                    dpath: Path{from: e.dpath.from, to: d},
+                    cost: e.cost + pcost,
+                    stepped: true,
+                });
+            }
+        }
     }
 
     r
 }
 
-fn handle_push<'a>(mut r: State<'a>) -> Option<State<'a>> {
-    //let mut r = s.clone();
+fn solve_one(i: &[char], m: &CostMap) -> usize {
+    let mut r = 0;
 
-    // directional -> directional: we handle the push
-    for ix in 1..r.dv.len() {
-        // push dv[ix-1] and affect dv[ix] state
-        //     ^ A
-        //   < v >
-        let od = match (r.dv[ix-1], r.dv[ix]) {
-            // pushing the target
-            ('A', _) => continue,
+    let mut prev: char = 'A';
 
-            // positioning:
-            // '<'
-            ('<', '^') => None,
-            ('<', 'A') => Some('^'),
-            ('<', '<') => None,
-            ('<', 'v') => Some('<'),
-            ('<', '>') => Some('v'),
-            // '>'
-            ('>', '^') => Some('A'),
-            ('>', 'A') => None,
-            ('>', '<') => Some('v'),
-            ('>', 'v') => Some('>'),
-            ('>', '>') => None,
-            // '^'
-            ('^', '^') => None,
-            ('^', 'A') => None,
-            ('^', '<') => None,
-            ('^', 'v') => Some('^'),
-            ('^', '>') => Some('A'),
-            // 'v'
-            ('v', '^') => Some('v'),
-            ('v', 'A') => Some('>'),
-            ('v', '<') => None,
-            ('v', 'v') => None,
-            ('v', '>') => None,
-
-            (dp, d) => panic!("Unhandled dv[{}/{}]: {}/{}", ix-1, ix, dp, d),
+    for c in i {
+        let path = Path{from: prev, to: *c};
+        let d = match m.get(&path) {
+            Some(cost) => *cost,
+            _          => panic!("Unexpected path request"),
         };
-
-        if let Some(d) = od {
-            r.dv[ix] = d;
-            return Some(r);
-        }
-
-        return None;
-    }
-
-    // directional -> numeric
-
-    // push
-    //   dv[len-1]:
-    //     ^ A
-    //   < v >
-    //
-    //   n:
-    //   7 8 9
-    //   4 5 6
-    //   1 2 3
-    //     0 A
-    let ix = r.dv.len() - 1;
-
-    let on = match (r.dv[ix], r.n) {
-        // push numeric
-        ('A', n) => {
-            if n == r.to_output[0] {
-                // pressed expected button, no moves around
-                r.to_output = &r.to_output[1..];
-                return Some(r);
-            };
-            None
-        },
-        // position numeric
-        // '<'
-        ('<', '7') => None,
-        ('<', '8') => Some('7'),
-        ('<', '9') => Some('8'),
-        ('<', '4') => None,
-        ('<', '5') => Some('4'),
-        ('<', '6') => Some('5'),
-        ('<', '1') => None,
-        ('<', '2') => Some('1'),
-        ('<', '3') => Some('2'),
-        ('<', '0') => None,
-        ('<', 'A') => Some('0'),
-        // '>'
-        ('>', '7') => Some('8'),
-        ('>', '8') => Some('9'),
-        ('>', '9') => None,
-        ('>', '4') => Some('5'),
-        ('>', '5') => Some('6'),
-        ('>', '6') => None,
-        ('>', '1') => Some('2'),
-        ('>', '2') => Some('3'),
-        ('>', '3') => None,
-        ('>', '0') => Some('A'),
-        ('>', 'A') => None,
-        // '^'
-        ('^', '7') => None,
-        ('^', '8') => None,
-        ('^', '9') => None,
-        ('^', '4') => Some('7'),
-        ('^', '5') => Some('8'),
-        ('^', '6') => Some('9'),
-        ('^', '1') => Some('4'),
-        ('^', '2') => Some('5'),
-        ('^', '3') => Some('6'),
-        ('^', '0') => Some('2'),
-        ('^', 'A') => Some('3'),
-        // 'v'
-        ('v', '7') => Some('4'),
-        ('v', '8') => Some('5'),
-        ('v', '9') => Some('6'),
-        ('v', '4') => Some('1'),
-        ('v', '5') => Some('2'),
-        ('v', '6') => Some('3'),
-        ('v', '1') => None,
-        ('v', '2') => Some('0'),
-        ('v', '3') => Some('A'),
-        ('v', '0') => None,
-        ('v', 'A') => None,
-
-        (d, n)     => panic!("Unhandled d={:?} n={:?}", d, n),
-    };
-
-    if let Some(n) = on {
-        r.n = n;
-        return Some(r)
-    }
-    return None
-}
-
-fn solve_one(i: &[char], depth: usize) -> usize {
-    let mut r = usize::MAX;
-
-    #[derive(Eq, Ord, PartialOrd, PartialEq)]
-    struct Entry<'a> {
-        prio: isize,
-        steps: usize,
-        key: State<'a>,
-    }
-
-    fn mk_entry<'a>(steps: usize, key: State<'a>) -> Entry<'a> {
-        let prio = (steps as isize) + (key.to_output.len() as isize);
-        Entry {
-            prio,
-            steps,
-            key,
-        }
-    }
-
-    let mut queue: BTreeSet<Entry> = BTreeSet::new();
-    queue.insert(mk_entry(0, mk_initial(i, depth)));
-
-    let mut visited: HashMap<State, usize> = HashMap::new();
-
-    while let Some(Entry{prio: _, key, steps}) = queue.pop_first() {
-        if key.to_output.len() == 0 {
-            if r > steps {
-                r = steps;
-            }
-            continue
-        }
-
-        if steps >= r { continue }
-
-        if let Some(seen_steps) = visited.get(&key) {
-            // already explored a better solution
-            if steps >= *seen_steps { continue }
-        }
-        visited.insert(key.clone(), steps);
-
-        for s in handle_move(&key) {
-            queue.insert(mk_entry(steps + 1, s));
-        }
-
-        if let Some(s) = handle_push(key) {
-            queue.insert(mk_entry(steps + 1, s));
-        }
+        r += d;
+        prev = *c;
     }
 
     r
 }
 
 fn solve(i: &str, depth: usize) -> usize {
+    let dirpad: Pad = Pad::from(DIRPAD);
+    let numpad: Pad = Pad::from(NUMPAD);
+
+    let mut m: CostMap = CostMap::new();
+    // Any button click is the cheapest one-button press.
+    for from in dirpad.values() {
+        for to in dirpad.values() {
+            m.insert(Path{from: *from, to: *to}, 1);
+        }
+    }
+
+    for _ in 0..depth {
+        m = advance_pad(&m, &dirpad);
+    }
+
+    m = advance_pad(&m, &numpad);
+
     let cs = parse_input(i);
 
     cs.into_iter()
-      .map(|c| solve_one(&c.0, depth) * c.1)
+      .map(|c| solve_one(&c.0, &m) * c.1)
       .sum()
 }
 
@@ -252,9 +157,5 @@ fn main() {
     let i = std::fs::read_to_string("input").expect("input");
     println!("P1 e: {:?} (expect 126384)", solve(&e, 2));
     println!("P1 i: {:?}", solve(&i, 2));
-    // will not work for depth if 25, it's answer will likely be
-    // too many digits to traverse even once :)
-    //for ix in 3..=25 {
-        //println!("P2 i {:?} (depth={ix:?})", solve(&i, ix));
-    //}
+    println!("P2 i: {:?}", solve(&i, 25));
 }
