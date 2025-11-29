@@ -3,3 +3,6 @@
 /target
 # the default executable name I use
 main
+# keep the inputs local, should not be distributed
+example*
+input*
