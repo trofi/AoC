@@ -41,13 +41,6 @@ fn solve_p1(i: &str, topn: usize) -> Result<usize, E> {
     }
     dists.sort();
 
-    // adjacency_set, symmetric: (i, j) and (j, i) are both present
-    let mut adj_set: HashSet<(ix, ix)> = HashSet::new();
-    for (_, (i, j)) in dists.into_iter().take(topn) {
-        adj_set.insert((i, j));
-        adj_set.insert((j, i));
-    }
-
     // find SCCs: one SCC is a set of indices
 
     // initialize SCCs: each is a singleton
@@ -62,7 +55,7 @@ fn solve_p1(i: &str, topn: usize) -> Result<usize, E> {
     }
 
     // construct SCCs using adjacency data
-    for (i, j) in adj_set.into_iter() {
+    for (_, (i, j)) in dists.into_iter().take(topn) {
         let mut iscc = ix2scc[i];
         let mut jscc = ix2scc[j];
         if iscc == jscc { continue }
