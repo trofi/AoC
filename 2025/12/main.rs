@@ -130,41 +130,63 @@ fn solve_p1_one(p: &Problem, shapes: &Vec<Shape>) -> bool {
 
     // Run a search
 
-    #[derive(Clone)]
+    #[derive(Clone, Eq, Hash, PartialEq)]
+    enum Tile { Free, Taken, }
+
+    #[derive(Clone, Eq, Hash, PartialEq)]
     struct Field {
-        taken: HashSet<Coord>,
+        region: (usize, usize),
+        tiles: Vec<Tile>,
     }
 
     impl Field {
-        fn new() -> Field { Field{ taken: HashSet::new() } }
-        fn contains(self: &Self, c: &Coord) -> bool { self.taken.contains(c) }
-        fn insert(self: &mut Self, c: Coord) { self.taken.insert(c); }
+        fn new(region: &(usize, usize)) -> Field {
+            let mut tiles = Vec::<Tile>::new();
+            tiles.resize(region.0 * region.1, Tile::Free);
+            Field{
+                region: *region,
+                tiles,
+            }
+        }
+        fn contains(self: &Self, c: &Coord) -> bool {
+            assert!(c.0 < self.region.0);
+            assert!(c.1 < self.region.1);
+
+            self.tiles[c.0 + self.region.0 * c.1] == Tile::Taken
+        }
+        fn insert(self: &mut Self, c: Coord) {
+            assert!(c.0 < self.region.0);
+            assert!(c.1 < self.region.1);
+
+            self.tiles[c.0 + self.region.0 * c.1] = Tile::Taken
+        }
+        fn taken(self: &Self) -> usize {
+            self.tiles.iter().filter(|e| **e == Tile::Taken).count()
+        }
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Eq, Hash, PartialEq)]
     struct State {
         field: Field,
         inventory: Vec<usize>, // not yet used shape counts
     }
     let mut q = VecDeque::<State>::new();
     q.push_back(State{
-        field: Field::new(),
+        field: Field::new(&p.region),
         inventory: p.inventory.clone(),
     });
 
-    let mut seen = HashSet::<(Vec<Coord>, Vec<usize>)>::new();
+    let mut seen = HashSet::<State>::new();
 
-    'next_state: while let Some(s) = q.pop_back() {
+    while let Some(s) = q.pop_back() {
         // managed to arrange all the inventory
         if s.inventory.iter().all(|e| *e == 0) { return true }
 
         // skip visited
-        let mut field_coords: Vec<Coord> = s.field.taken.iter().cloned().collect();
-        field_coords.sort();
-        let seen_key = (field_coords, s.inventory.clone());
-        if seen.contains(&seen_key) { continue }
-        seen.insert(seen_key);
+        if seen.contains(&s) { continue }
+        seen.insert(s.clone());
 
+        let taken = s.field.taken();
         let will_take = s.inventory.iter().enumerate().map(|(i, n)|
             n * shapes[i].len()
         ).sum::<usize>();
@@ -173,12 +195,16 @@ fn solve_p1_one(p: &Problem, shapes: &Vec<Shape>) -> bool {
         for (ix, count) in s.inventory.iter().enumerate() {
             if *count == 0 { continue }
 
-            for shape in &rshapes[ix] {
-                let mut empty_cells: usize = 0;
+            'next_shape: for shape in &rshapes[ix] {
+                let mut skipped_empty_cells: usize = 0;
                 for x in 0..p.region.0 {
                     'next_point: for y in 0..p.region.1 {
-                        if sq < s.field.taken.len() + will_take + empty_cells { continue 'next_state }
-                        if s.field.contains(&(x, y)) { empty_cells += 1; }
+                        // check if we skipped too much white space not
+                        // to be able to fit the rest of pending shapes.
+                        if sq < taken + will_take + skipped_empty_cells { continue 'next_shape }
+                        // optimistically assume we will skip it
+                        if !s.field.contains(&(x, y)) { skipped_empty_cells += 1; }
+
                         // check shape for collision
                         for (dx, dy) in shape {
                             let sc = (x + dx, y + dy);
@@ -186,6 +212,8 @@ fn solve_p1_one(p: &Problem, shapes: &Vec<Shape>) -> bool {
                             if sc.1 >= p.region.1 { continue 'next_point }
                             if s.field.contains(&sc) { continue 'next_point }
                         }
+                        // might fill it back
+                        skipped_empty_cells -= 1;
 
                         // Shape fits! Trying.
                         let mut new_state = s.clone();
