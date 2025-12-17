@@ -1,7 +1,8 @@
 {
   description = "Development environment for Advent Of Code";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # use system flake to avoid redownload and match closer software versions
+    nixpkgs.url = "flake:nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs = { self, nixpkgs, flake-utils }:
